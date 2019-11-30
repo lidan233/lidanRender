@@ -8,34 +8,56 @@
 #include "../util/data.h"
 #include "../util/common.h"
 #include "tgaimage.h"
+#include "../util/manipulation.h"
+
 #include <string.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 
 using namespace std;
 
 class ModelAndView {
 private:
+    std::vector<Vec3f> normal_vector_read ;
     std::vector<Vec3f> vertexs ;
-    std::vector<Vec3f> normal_v;
+    std::vector<Vec3i> normal_v;
     std::vector< vector<int> > faces ;
 
+    vector< vector<int> > idxTex ;
+
+    std::vector<Vec2f> Texs ;
+    TGAImage text ;
+
     bool isnormal = false  ;
+    bool useTexture = false ;
     float* z_buffer ;
+
+    int T_width ;
+    int T_height ;
+
+    Vec3f camera ;
+
 
 public:
     ModelAndView(const string path) ;
-    ModelAndView(vector<Vec3f> points,vector<vector<int> > faces) ;
+    ModelAndView(vector<Vec3f> points,vector< vector<int> > faces) ;
     ~ModelAndView() ;
     int getVertexSize() ;
     int getFacesSize() ;
     Vec3f getVertex(int n) ;
     std::vector<int> getFace(int idx) ;
-    void drawAll_bound(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor> m_c) ;
+    std::vector<int> getFaceText(int idx) ;
     void normal(int height,int width) ;
     void drawAll(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor> f_c,Vec3f light_dir) ;
+    void addTexture(string path) ;
+    TGAColor getTextureColor(Vec2i point ) ;
+    vector<Vec2i> getFaceVertexTexturePosition(int face_i ) ;
+    void setcamera(Vec3f camera);
+
+
 
 };
 

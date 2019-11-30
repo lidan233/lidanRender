@@ -5,8 +5,15 @@
 #include "geom/triangle.h"
 
 
+const int width = 800;
+const int height = 800 ;
+const int depth = 255  ;
+
+Vec3f light_dir(0,0,-1) ;
+Vec3f camera(0,0,3) ;
+
 int main(int argc, char** argv) {
-	TGAImage image(800, 800, TGAImage::RGB);
+	TGAImage image(width, height, TGAImage::RGB);
 	image.set(0, 0, red);
 
 //	// i want to have the origin at the left bottom corner of the image
@@ -39,16 +46,21 @@ int main(int argc, char** argv) {
 //    a.drawAll(image, one ,two) ;
 
 
+//    vector<Vec3f*> t1 ;
+//    t1.push_back(new Vec3f(10,70,10));
+//    t1.push_back(new Vec3f(50,160,10));
+//    t1.push_back(new Vec3f(70, 500,10));
+//
+//
+//    float* z_buffer = new float[image.get_width()*image.get_height()] ;
+//    for(int i = image.get_width()*image.get_height();i--;z_buffer[i] = -std::numeric_limits<float>::max()) ;
+//
+//    int index[3] = {0,1,2};
+//    Triangle a(index) ;
+//    a.draw(image, z_buffer,t1, const_cast<TGAColor &>(red)) ;
+
 /*
-    vector<Vec3f> t1 ;
-    t1.push_back(Vec3f(10,70,10));
-    t1.push_back(Vec3f(50,160,10));
-    t1.push_back(Vec3f(70, 80,10));
 
-
-    int index[3] = {0,1,2};
-    Triangle a(index) ;
-    a.draw(image, t1, const_cast<TGAColor &>(red)) ;
 
 
     vector<Vec3f> t2 ;
@@ -82,10 +94,12 @@ int main(int argc, char** argv) {
 */
 
 
-//
-    ModelAndView a = ModelAndView("/Users/lidan/Desktop/软光栅/tinyrender/testData/obj/african_head/african_head.obj") ;
+
+    ModelAndView a = ModelAndView("/Users/lidan/Desktop/软光栅/tinyrender/testData/lidan.obj") ;
+    a.addTexture("/Users/lidan/Desktop/软光栅/tinyrender/testData/obj/african_head/african_head_diffuse.tga") ;
     vector<TGAColor> one ;
     vector<TGAColor> two ;
+    a.setcamera(camera) ;
     a.normal(800,800);
     a.drawAll(image, one ,two,Vec3f(0,0,-1)) ;
 

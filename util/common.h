@@ -13,7 +13,7 @@
 #include <iostream>
 #include <iomanip>
 
-
+#include "manipulation.h"
 #include "../module/tgaimage.h"
 #include "../geom/triangle.h"
 
@@ -75,7 +75,7 @@ inline vector<string> getstringObj(string data )
     return result ;
 }
 
-inline void readObj(const string filename,vector<Vec3f>& verts_,vector<vector<int> >& faces_) {
+inline void readObj(const string filename,vector<Vec3f>& verts_,vector<vector<int> >& faces_,vector<vector<int> >& idxTex_,vector<Vec2f>& texture,vector<Vec3f> norms) {
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) return;
@@ -87,49 +87,73 @@ inline void readObj(const string filename,vector<Vec3f>& verts_,vector<vector<in
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
             Vec3f v;
-            for (int i=0;i<3;i++) iss >> v.raw[i];
+            for (int i=0;i<3;i++) iss >> v[i];
             verts_.push_back(v);
-        } else if (!line.compare(0, 2, "f ")) {
+        }else if(!line.compare(0,3,"vt "))
+        {
+            Vec2f t;
+            float temp ;
+            iss >> trash>>trash ;
+            for(int i = 0; i <2 ;i++)
+            {
+                iss>>temp;
+                t[i]= temp ;
+            }
+            texture.push_back(t) ;
+        }else if(!line.compare(0,3,"vn "))
+        {
+            Vec3f n;
+            float temp ;
+            iss >> trash>>trash ;
+            for(int i = 0; i <3 ;i++)
+            {
+                iss>>temp;
+                n[i]= temp ;
+            }
+            norms.push_back(n) ;
+        }else if (!line.compare(0, 2, "f ")) {
             std::vector<int> f;
-            int itrash, idx;
+            std::vector<int> idxTex ;
+            //we not find trash
+            int iTex,itrash, idx;
             iss >> trash;
-            while (iss >> idx >> trash >> itrash >> trash >> itrash) {
+            while (iss >> idx >> trash >> iTex >> trash >> itrash) {
                 idx--; // in wavefront obj all indices start at 1, not zero
                 f.push_back(idx);
+                idxTex.push_back(iTex) ;
             }
             faces_.push_back(f);
+            idxTex_.push_back(idxTex) ;
         }
     }
     std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << std::endl;
 }
 
-inline void normalVertexs(vector<Vec3f>& verts_,int height,int width)
+inline void normalVertexs(vector<Vec3f>& s_verts ,vector<Vec3i>& verts_,int height,int width,Vec3f camera)
 {
-    for(int i = 0 ;i < verts_.size();i++)
+
+    Matrix44 viewport = manipulation::viewport(width/8,height/8,width*3/4,height*3/4,255) ;
+    Matrix44 project = manipulation::projection(camera.z) ;
+    for(int i = 0 ;i< verts_.size();i++)
     {
-        verts_[i].raw[0] = int((verts_[i].raw[0]+1)*width/2+0.5) ;
-        verts_[i].raw[1] = int((verts_[i].raw[1]+1)*height/2+0.5) ;
+        Matrix41 screen = manipulation::v2m(s_verts[i]) ;
+        verts_[i] = manipulation::m2v(viewport*project*screen) ;
     }
+
+
+//    for(int i = 0 ;i < verts_.size();i++)
+//    {
+//        verts_[i].x = int((verts_[i].x+1)*width/2.0+0.5) ;
+//        verts_[i].y = int((verts_[i].y+1)*height/2.0+0.5) ;
+//    }
 }
 
-inline double round(double src,int precise)
-{
-    stringstream ss ;
-    ss<<std::fixed<< setprecision(precise) << src;
-    ss>>src ;
+inline double round(double src,int precise) {
+    stringstream ss;
+    ss << std::fixed << setprecision(precise) << src;
+    ss >> src;
     return src ;
 }
-
-inline template<typename t> t add_xy(t& a,t& b)
-{
-    return t(a.getX()+b.getX(),a.getY()+b.getY(),a.raw[2]) ;
-}
-
-inline template<typename t> t sub_xy(t& a,t& b)
-{
-    return t(a.getX()-b.getX(),a.getY()-b.getY(),a.raw[2]) ;
-}
-
 inline Vec3f barycentric(vector<Point*> points,Point* p)
 {
     Vec3f all_x = Vec3f(points[2]->getX()-points[0]->getX(),
@@ -138,27 +162,57 @@ inline Vec3f barycentric(vector<Point*> points,Point* p)
     Vec3f all_y = Vec3f(points[2]->getY()-points[0]->getY(),
                         points[1]->getY()-points[0]->getY(),
                         points[0]->getY()-p->getY()) ;
-    Vec3f result = all_x^all_y ;
+    Vec3f result = cross(all_x,all_y) ;
 
-    if(abs(result.raw[2])<1) return Vec3f(-1,1,1) ;
-    return Vec3f(1.f-(result.raw[0]+result.raw[1])/result.raw[2],result.raw[0]/result.raw[2],result.raw[0]/result.raw[2]) ;
+    //根据重心坐标系推出0存在 xy拆分两个方程 然后=0 定义为垂直两个向量 X乘
+    //这里结果中如果两个接近共线则认为是0 则三角形被认为是退化三角形
+    if(abs(result[2])>1e-2)
+    {
+        return Vec3f(1.f-(result.x+result.y)/result.z,result.y/result.z,result.x/result.z) ;
+    }
+    return Vec3f(-1,1,1);
 }
-inline std::pair<Vec2i,Vec2i> getMBR(TGAImage& image,int* points_i,vector<Vec3f*> points)
+inline std::pair<Vec2f,Vec2f> getMBR(TGAImage& image,int* points_i,vector<Vec3f*> points)
 {
-    Vec2i xmin(INT16_MAX,INT16_MAX) ;
-    Vec2i xmax(0,0) ;
-    Vec2i clamp(image.get_width()-1,image.get_height()-1) ;
+    Vec2f xmin(std::numeric_limits<float>::max(),std::numeric_limits<float>::max()) ;
+    Vec2f xmax(-std::numeric_limits<float>::max(),-std::numeric_limits<float>::max()) ;
+    Vec2f clamp(image.get_width()-1,image.get_height()-1) ;
 
     for(int i = 0;i<3;i++)
     {
-        xmin.raw[0] = std::max(0.0,xmin[0]<points[points_i[i]]->raw[0]?xmin[0]*1.0:points[points_i[i]]->raw[0]) ;
-        xmin.raw[1] = std::max(0.0,xmin[1]<points[points_i[i]]->raw[1]?xmin[1]*1.0:points[points_i[i]]->raw[1]) ;
-        xmax.raw[0] = std::min((float)clamp[0],std::max((float)xmax[0],points[points_i[i]]->raw[0])) ;
-        xmax.raw[1] = std::min((float)clamp[1],std::max((float)xmax[1],points[points_i[i]]->raw[1])) ;
+
+        xmin.x = std::max(0.0f,std::min(points[points_i[i]]->x,(float)xmin[0]))  ;
+        xmin.y = std::max(0.0f,std::min(points[points_i[i]]->y,(float)xmin[1])) ;
+        xmax.x = std::min((float)clamp[0],std::max((float)xmax[0],points[points_i[i]]->x)) ;
+        xmax.y = std::min((float)clamp[1],std::max((float)xmax[1],points[points_i[i]]->y)) ;
     }
 
 
     return make_pair(xmin,xmax) ;
+}
+
+inline TGAColor& multiply(TGAColor& from ,const float val)
+{
+    TGAColor to ;
+    for(int i = 0;i< 3;i++)
+    {
+        to.raw[i] = (char)(((float)from.raw[i])*val) ;
+    }
+    to.raw[3] = 255 ;
+    to.bytespp = 3;
+    return to ;
+}
+inline TGAColor& interpolateColor(vector<TGAColor> colors,Vec3f baryCoordinates )
+{
+    TGAColor result ;
+    for(int i =0 ;i < 4;i++)
+    {
+        for(int j = 0; j<3 ;j++)
+        {
+            result.raw[i] +=  colors[j].raw[i]*baryCoordinates[j] ;
+        }
+    }
+    return result ;
 }
 
 #endif

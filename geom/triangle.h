@@ -8,7 +8,7 @@
 #include "Line.h"
 #include "../module/tgaimage.h"
 #include "../util/common.h"
-
+#include "../util/data.h"
 #include <vector>
 #include <tuple>
 using namespace std ;
@@ -16,10 +16,14 @@ using namespace std ;
 
 class Triangle {
 public:
+    int  points_i[3] ;
+
+
     Triangle(int index[3]);
     void draw_vec3f(TGAImage& image,vector<Vec3f> points,TGAColor& color ) ;
-    void draw(TGAImage& image,float* zbuffer ,vector<Vec3f*> points,TGAColor color );
-    int  points_i[3] ;
+    void draw(TGAImage& image,float* zbuffer ,vector<Vec3f*> points,vector<Vec2i> colorsPosition ,float intensity,TGAImage textImage);
+    void draw_vec3i(TGAImage &image, float *zbuffer, vector<Vec3i> points, vector<Vec2i> colorsPosition, float intensity,
+                    TGAImage textImage);
 };
 
 
