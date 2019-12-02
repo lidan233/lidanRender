@@ -27,6 +27,7 @@ private:
     std::vector< vector<int> > faces ;
 
     vector< vector<int> > idxTex ;
+    vector< vector<int> > idxNorm ;
 
     std::vector<Vec2f> Texs ;
     TGAImage text ;
@@ -50,11 +51,13 @@ public:
     Vec3f getVertex(int n) ;
     std::vector<int> getFace(int idx) ;
     std::vector<int> getFaceText(int idx) ;
+    std::vector<int> getFaceVertexNormIndex(int idx);
     void normal(int height,int width) ;
     void drawAll(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor> f_c,Vec3f light_dir) ;
     void addTexture(string path) ;
     TGAColor getTextureColor(Vec2i point ) ;
     vector<Vec2i> getFaceVertexTexturePosition(int face_i ) ;
+    vector<Vec3f> getFaceVectexNorm(int face_i) ;
     void setcamera(Vec3f camera);
 
 

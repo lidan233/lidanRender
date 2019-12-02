@@ -29,7 +29,7 @@ ModelAndView::ModelAndView(const string path)
 //            faces.push_back(face) ;
 //        }
 //    }
-    readObj(path,vertexs,faces,idxTex,Texs,normal_vector_read) ;
+    readObj(path,vertexs,faces,idxTex,Texs,normal_vector_read,idxNorm) ;
     cout<<"fuck";
 }
 ModelAndView::~ModelAndView()
@@ -43,6 +43,7 @@ Vec3f ModelAndView::getVertex(int n) {return vertexs[n] ;}
 
 std::vector<int> ModelAndView::getFace(int idx){return faces[idx] ;}
 std::vector<int> ModelAndView::getFaceText(int idx){ return idxTex[idx] ;}
+std::vector<int> ModelAndView::getFaceVertexNormIndex(int idx){ return idxNorm[idx] ;}
 
 //
 //void ModelAndView::drawAll_bound(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor> f_c)
@@ -66,27 +67,19 @@ void ModelAndView::drawAll(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor
 {
 
     z_buffer = new float[image.get_width()*image.get_height()] ;
-    for(int i = image.get_width()*image.get_height();i--;z_buffer[i] = -std::numeric_limits<float>::max()) ;
+    for(int i = image.get_width()*image.get_height();i--;z_buffer[i] = std::numeric_limits<float>::min()) ;
 
     srand(time(NULL) ) ;
     int size = getFacesSize() ;
     for(int i = 0; i< size;i++)
     {
         std::vector<int> face = getFace(i) ;
-
         //使用原始世界坐标
         isnormal = false ;
-
-
         vector<Vec3i> t4 ;
-
         t4.push_back(normal_v[face[0]]);
         t4.push_back(normal_v[face[1]]);
         t4.push_back(normal_v[face[2]]);
-
-
-
-
 
 
         Vec3f n = cross((vertexs[face[2]]-vertexs[face[0]]),(vertexs[face[1]]-vertexs[face[0]]) );
@@ -156,6 +149,19 @@ vector<Vec2i> ModelAndView::getFaceVertexTexturePosition(int face_i )
         result.push_back(temp) ;
     }
     return result ;
+}
+
+vector<Vec3f> ModelAndView::getFaceVectexNorm(int face_i)
+{
+    assert(face_i<getFacesSize()) ;
+    vector<int> idx_v = getFaceVertexNormIndex(face_i);
+    vector<Vec3f> norms ;
+    for(int i =0 ;i <3 ;i++)
+    {
+        Vec3f temp = normal_vector_read[idx_v[i]] ;
+        norms.push_back(temp) ;
+    }
+    return norms;
 }
 
 void ModelAndView::setcamera(Vec3f camera)
