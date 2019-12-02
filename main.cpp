@@ -9,8 +9,12 @@ const int width = 800;
 const int height = 800 ;
 const int depth = 255  ;
 
-Vec3f light_dir(0,0,-1) ;
+//Vec3f light_dir(0,0,-1) ;
+Vec3f light_dir = Vec3f(1,-1,1).normalize();
 Vec3f camera(0,0,3) ;
+Vec3f eye(1,1,3);
+Vec3f center(0,0,0);
+Vec3f up(0,1,0);
 
 int main(int argc, char** argv) {
 	TGAImage image(width, height, TGAImage::RGB);
@@ -95,13 +99,14 @@ int main(int argc, char** argv) {
 
 
 
-    ModelAndView a = ModelAndView("/Users/lidan/Desktop/软光栅/tinyrender/testData/lidan.obj") ;
+    ModelAndView a = ModelAndView("/Users/lidan/Desktop/软光栅/tinyrender/testData/obj/african_head/african_head.obj") ;
     a.addTexture("/Users/lidan/Desktop/软光栅/tinyrender/testData/obj/african_head/african_head_diffuse.tga") ;
     vector<TGAColor> one ;
     vector<TGAColor> two ;
     a.setcamera(camera) ;
-    a.normal(800,800);
+    a.normal(800,800,center,eye,up);
     a.drawAll(image, one ,two,Vec3f(0,0,-1)) ;
+
 
     image.flip_vertically();
 

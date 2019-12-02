@@ -33,6 +33,8 @@ public:
 
 
 
+    static  Matrix44& lookAt(Vec3f eye,Vec3f center ,Vec3f up);
+
 
 };
 

@@ -52,7 +52,7 @@ public:
     std::vector<int> getFace(int idx) ;
     std::vector<int> getFaceText(int idx) ;
     std::vector<int> getFaceVertexNormIndex(int idx);
-    void normal(int height,int width) ;
+    void normal(int height,int width,Vec3f center,Vec3f eye,Vec3f up);
     void drawAll(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor> f_c,Vec3f light_dir) ;
     void addTexture(string path) ;
     TGAColor getTextureColor(Vec2i point ) ;

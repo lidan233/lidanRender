@@ -28,7 +28,7 @@ Matrix44& manipulation::viewport(int x,int y,int w,int h,int depth)
 
     m[0][3] = x+w/2.f ;
     m[1][3] = y+h/2.f ;
-    m[2][3] = depth/2;
+    m[2][3] = depth/2.f;
 
     m[0][0] = w/2.f ;
     m[1][1] = h/2.f ;
@@ -87,6 +87,26 @@ Matrix44& manipulation::projection(float camera){
     R[3][2] = -1.f/float(camera) ;
     return R ;
 
+}
+
+Matrix44& manipulation::lookAt(Vec3f eye,Vec3f center ,Vec3f up)
+{
+    //左手系 右手系可以改为center-eye 其他不用动
+    Vec3f z = (eye-center).normalize() ;
+    Vec3f x = cross(up,z) ;
+    Vec3f y = cross(z,x) ;
+
+    Matrix44 minv = Matrix44::indentity() ;
+    for(int i = 0; i< 3;i++)
+    {
+        minv[0][i] = x[i] ;
+        minv[1][i] = y[i] ;
+        minv[2][i] = z[i] ;
+        //平移操作
+        minv[i][3]  =  -center[i] ;
+    }
+
+    return minv ;
 }
 
 

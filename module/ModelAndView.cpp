@@ -77,19 +77,26 @@ void ModelAndView::drawAll(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor
         //使用原始世界坐标
         isnormal = false ;
         vector<Vec3i> t4 ;
-        t4.push_back(normal_v[face[0]]);
-        t4.push_back(normal_v[face[1]]);
-        t4.push_back(normal_v[face[2]]);
+        Vec3f intensity;
+        vector<Vec3f> norms = getFaceVectexNorm(i) ;
 
-
-        Vec3f n = cross((vertexs[face[2]]-vertexs[face[0]]),(vertexs[face[1]]-vertexs[face[0]]) );
-        n.normalize() ;
-        float intensity = n*light_dir ;
-
-
-
-        if(intensity>0)
+        for(int i = 0; i< 3;i++)
         {
+            t4.push_back(normal_v[face[i]]);
+            intensity[i] = norms[i]*light_dir ;
+        }
+
+
+//        Vec3f n = cross((vertexs[face[2]]-vertexs[face[0]]),(vertexs[face[1]]-vertexs[face[0]]) );
+//        n.normalize() ;
+//        float intensity = n*light_dir ;
+
+
+
+
+
+//        if(intensity[0]>0)
+//        {
             vector<Vec2i> T_Texts  = getFaceVertexTexturePosition(i);
 //            for(int i = 3;i--;)
 //            {
@@ -99,14 +106,14 @@ void ModelAndView::drawAll(TGAImage& image ,vector<TGAColor> v_c,vector<TGAColor
             int index3[3] = {0,1,2};
             Triangle d(index3) ;
             d.draw_vec3i(image,z_buffer, t4,T_Texts,intensity,text ) ;
-        }
+//        }
 
 
 
     }
 
 }
-void ModelAndView::normal(int height,int width)
+void ModelAndView::normal(int height,int width,Vec3f center,Vec3f eye,Vec3f up)
 {
     isnormal = true ;
     for(int i = 0; i<vertexs.size();i++)
@@ -117,7 +124,7 @@ void ModelAndView::normal(int height,int width)
         temp[2] = vertexs[i][2] ;
         normal_v.push_back(temp) ;
      }
-    normalVertexs(vertexs,normal_v,height,width,camera) ;
+    normalVertexs(vertexs,normal_v,height,width,camera,eye,center,up) ;
 }
 
 void ModelAndView::addTexture(string path)
@@ -159,7 +166,7 @@ vector<Vec3f> ModelAndView::getFaceVectexNorm(int face_i)
     for(int i =0 ;i <3 ;i++)
     {
         Vec3f temp = normal_vector_read[idx_v[i]] ;
-        norms.push_back(temp) ;
+        norms.push_back(temp.normalize()) ;
     }
     return norms;
 }

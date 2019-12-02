@@ -21,8 +21,8 @@ public:
 
     Triangle(int index[3]);
     void draw_vec3f(TGAImage& image,vector<Vec3f> points,TGAColor& color ) ;
-    void draw(TGAImage& image,float* zbuffer ,vector<Vec3f*> points,vector<Vec2i> colorsPosition ,float intensity,TGAImage textImage);
-    void draw_vec3i(TGAImage &image, float *zbuffer, vector<Vec3i> points, vector<Vec2i> colorsPosition, float intensity,
+    void draw(TGAImage& image,float* zbuffer ,vector<Vec3f> points,vector<Vec2i> colorsPosition ,float intensity,TGAImage textImage);
+    void draw_vec3i(TGAImage &image, float *zbuffer, vector<Vec3i> points, vector<Vec2i> colorsPosition, Vec3f intensity,
                     TGAImage textImage);
 };
 

@@ -96,7 +96,7 @@ void Triangle::draw_vec3f(TGAImage &image, vector<Vec3f> points, TGAColor &color
 }
 
 
-void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,vector<Vec2i> colorsPosition,float intensity,TGAImage textImage)
+void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,vector<Vec2i> colorsPosition,Vec3f intensity,TGAImage textImage)
 {
     Vec3i t1 = points[0];
     Vec3i t2 = points[1] ;
@@ -106,10 +106,14 @@ void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,v
     Vec2i c2 = colorsPosition[1] ;
     Vec2i c3 = colorsPosition[2] ;
 
-    if(t2.y < t1.y) {std::swap(t1,t2) ; std::swap(c1,c2) ;}
-    if(t1.y > t3.y) {std::swap(t1,t3) ; std::swap(c1,c3) ;}
-    if(t2.y > t3.y) {std::swap(t2,t3) ; std::swap(c2,c3) ;}
+    float in1 = intensity[0] ;
+    float in2 = intensity[1] ;
+    float in3 = intensity[2] ;
 
+
+    if(t2.y < t1.y) {std::swap(t1,t2) ; std::swap(c1,c2) ; std::swap(in1,in2);}
+    if(t1.y > t3.y) {std::swap(t1,t3) ; std::swap(c1,c3) ; std::swap(in1,in3);}
+    if(t2.y > t3.y) {std::swap(t2,t3) ; std::swap(c2,c3) ; std::swap(in2,in3);}
 
 
 
@@ -121,14 +125,17 @@ void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,v
         float alpha = (float) i/total_height ;
         float beta =(float)(i-(second_half?t2.y-t1.y:0))/segment_height ;
 
-        Vec3i A = t1+Vec3i(t3-t1)*alpha ;
-        Vec3i B = second_half? t2+Vec3i(t3-t2)*beta:t1+Vec3i(t2-t1)*beta ;
+        Vec3i A = t1+Vec3f(t3-t1)*alpha ;
+        Vec3i B = second_half? t2+Vec3f(t3-t2)*beta:t1+Vec3f(t2-t1)*beta ;
 
         Vec2i uvA = c1+Vec2i(c3-c1)*alpha ;
         Vec2i uvB = second_half?c2+Vec2i(c3-c2)*beta:c1+Vec2i(c2-c1)*beta ;
 
+        float inA = in1+(in3-in1)*alpha ;
+        float inB = second_half?in2+(in3-in2)*beta:in1+(in2-in1)*beta ;
 
-        if(A.x>B.x){ std::swap(A,B) ; std::swap(uvA,uvB) ;}
+
+        if(A.x>B.x){ std::swap(A,B) ; std::swap(uvA,uvB) ;std::swap(inA,inB) ;}
 
 
 
@@ -137,12 +144,16 @@ void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,v
             float phi = B.x==A.x?1.0f:float(j-A.x)/float(B.x-A.x) ;
             Vec3i P = Vec3f(A)+Vec3f(B-A)*phi ;
             Vec2i uvP = uvA + (uvB-uvA)*phi ;
+            float inP = inA+(inB-inA)*phi ;
             int idx =  P.x+P.y*image.get_width() ;
+            if(P.x>=image.get_width()||P.y>=image.get_height()||P.x<0||P.y<0) continue ;
             if(zbuffer[idx]<P.z)
             {
                 zbuffer[idx]  = P.z ;
                 TGAColor color = textImage.get(uvP.x,uvP.y) ;
-                image.set(P.x,P.y,TGAColor((unsigned char)(color.r*intensity),(unsigned char)(color.g*intensity),(unsigned char)(color.b*intensity))) ;
+                image.set(P.x,P.y,TGAColor((unsigned char)(color.r*inP),(unsigned char)(color.g*inP),(unsigned char)(color.b*inP))) ;
+//                image.set(P.x,P.y,TGAColor((unsigned char)(color.r),(unsigned char)(color.g),(unsigned char)(color.b))) ;
+//                image.set(P.x,P.y,TGAColor((unsigned char)(255*intensity),(unsigned char)(255*intensity),(unsigned char)(255*intensity))) ;
             }
         }
 
@@ -152,16 +163,16 @@ void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,v
 
 
 
-void Triangle::draw(TGAImage& image,float* zbuffer ,vector<Vec3f*> points,vector<Vec2i> colorsPosition,float intensity ,TGAImage textImage)
+void Triangle::draw(TGAImage& image,float* zbuffer ,vector<Vec3f> points,vector<Vec2i> colorsPosition,float intensity ,TGAImage textImage)
 {
     std::pair<Vec2f,Vec2f> bound = getMBR( image,points_i,points) ;
     Vec2f xmin = bound.first ;
     Vec2f xmax = bound.second ;
 
     vector<Point*> temp ;
-    temp.push_back(new Point(points[points_i[0]]->x,points[points_i[0]]->y)) ;
-    temp.push_back(new Point(points[points_i[1]]->x,points[points_i[1]]->y)) ;
-    temp.push_back(new Point(points[points_i[2]]->x,points[points_i[2]]->y)) ;
+    temp.push_back(new Point(points[points_i[0]].x,points[points_i[0]].y)) ;
+    temp.push_back(new Point(points[points_i[1]].x,points[points_i[1]].y)) ;
+    temp.push_back(new Point(points[points_i[2]].x,points[points_i[2]].y)) ;
 
 
     Vec3f p ;
@@ -180,7 +191,7 @@ void Triangle::draw(TGAImage& image,float* zbuffer ,vector<Vec3f*> points,vector
             TGAColor temp = interpolateColor(colors,bscreen) ;
 
             p.z = 0 ;
-            for(int i = 0; i<3 ;i++) p.z += points[points_i[i]]->z*bscreen[i];
+            for(int i = 0; i<3 ;i++) p.z += points[points_i[i]].z*bscreen[i];
             if(zbuffer[int(p.x+p.y*image.get_width())]<p.z)
             {
                 zbuffer[int(p.x+p.y*image.get_width())] = p.z ;

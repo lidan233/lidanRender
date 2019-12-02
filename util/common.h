@@ -75,7 +75,7 @@ inline vector<string> getstringObj(string data )
     return result ;
 }
 
-inline void readObj(const string filename,vector<Vec3f>& verts_,vector<vector<int> >& faces_,vector<vector<int> >& idxTex_,vector<Vec2f>& texture,vector<Vec3f> norms) {
+inline void readObj(const string filename,vector<Vec3f>& verts_,vector<vector<int> >& faces_,vector<vector<int> >& idxTex_,vector<Vec2f>& texture,vector<Vec3f>& norms,vector<vector<int> >& idxNorm_) {
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) return;
@@ -114,31 +114,41 @@ inline void readObj(const string filename,vector<Vec3f>& verts_,vector<vector<in
         }else if (!line.compare(0, 2, "f ")) {
             std::vector<int> f;
             std::vector<int> idxTex ;
+            std::vector<int> idxNorm ;
             //we not find trash
-            int iTex,itrash, idx;
+            int iTex,iNorm, idx;
             iss >> trash;
-            while (iss >> idx >> trash >> iTex >> trash >> itrash) {
+            //vertex/uv/normal
+            while (iss >> idx >> trash >> iTex >> trash >> iNorm) {
                 idx--; // in wavefront obj all indices start at 1, not zero
                 f.push_back(idx);
-                idxTex.push_back(iTex) ;
+                idxTex.push_back(--iTex) ;
+                idxNorm.push_back(--iNorm) ;
             }
             faces_.push_back(f);
             idxTex_.push_back(idxTex) ;
+            idxNorm_.push_back(idxNorm) ;
         }
     }
     std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << std::endl;
 }
 
-inline void normalVertexs(vector<Vec3f>& s_verts ,vector<Vec3i>& verts_,int height,int width,Vec3f camera)
+inline void normalVertexs(vector<Vec3f>& s_verts ,vector<Vec3i>& verts_,int height,int width,Vec3f camera,Vec3f eye,Vec3f center,Vec3f up)
 {
 
+
+    // 平移+旋转 平移到center 对应的verts_此时还是在-1到1之间的local坐标  然后我们转换一下坐标系
+    Matrix44 lookat = manipulation::lookAt(eye,center,up) ;
     Matrix44 viewport = manipulation::viewport(width/8,height/8,width*3/4,height*3/4,255) ;
-    Matrix44 project = manipulation::projection(camera.z) ;
+    Matrix44 project = manipulation::projection((eye-center).norm()) ;
     for(int i = 0 ;i< verts_.size();i++)
     {
+        //明天进行v2m和m2v的替换
         Matrix41 screen = manipulation::v2m(s_verts[i]) ;
-        verts_[i] = manipulation::m2v(viewport*project*screen) ;
+        verts_[i] = manipulation::m2v(viewport*project*lookat*screen) ;
+        cout<<" i "<<verts_[i][0]<<" "<<verts_[i][1]<<" "<<verts_[i][2]<<" "<<endl ;
     }
+
 
 
 //    for(int i = 0 ;i < verts_.size();i++)
@@ -172,7 +182,7 @@ inline Vec3f barycentric(vector<Point*> points,Point* p)
     }
     return Vec3f(-1,1,1);
 }
-inline std::pair<Vec2f,Vec2f> getMBR(TGAImage& image,int* points_i,vector<Vec3f*> points)
+inline std::pair<Vec2f,Vec2f> getMBR(TGAImage& image,int* points_i,vector<Vec3f> points)
 {
     Vec2f xmin(std::numeric_limits<float>::max(),std::numeric_limits<float>::max()) ;
     Vec2f xmax(-std::numeric_limits<float>::max(),-std::numeric_limits<float>::max()) ;
@@ -181,10 +191,10 @@ inline std::pair<Vec2f,Vec2f> getMBR(TGAImage& image,int* points_i,vector<Vec3f*
     for(int i = 0;i<3;i++)
     {
 
-        xmin.x = std::max(0.0f,std::min(points[points_i[i]]->x,(float)xmin[0]))  ;
-        xmin.y = std::max(0.0f,std::min(points[points_i[i]]->y,(float)xmin[1])) ;
-        xmax.x = std::min((float)clamp[0],std::max((float)xmax[0],points[points_i[i]]->x)) ;
-        xmax.y = std::min((float)clamp[1],std::max((float)xmax[1],points[points_i[i]]->y)) ;
+        xmin.x = std::max(0.0f,std::min(points[points_i[i]].x,(float)xmin[0]))  ;
+        xmin.y = std::max(0.0f,std::min(points[points_i[i]].y,(float)xmin[1])) ;
+        xmax.x = std::min((float)clamp[0],std::max((float)xmax[0],points[points_i[i]].x)) ;
+        xmax.y = std::min((float)clamp[1],std::max((float)xmax[1],points[points_i[i]].y)) ;
     }
 
 
