@@ -21,6 +21,7 @@ using namespace std;
 
 class ModelAndView {
 private:
+    //normals of vertex
     std::vector<Vec3f> normal_vector_read ;
     std::vector<Vec3f> vertexs ;
     std::vector<Vec3i> normal_v;

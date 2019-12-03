@@ -151,7 +151,8 @@ void Triangle::draw_vec3i(TGAImage& image,float* zbuffer ,vector<Vec3i> points,v
             {
                 zbuffer[idx]  = P.z ;
                 TGAColor color = textImage.get(uvP.x,uvP.y) ;
-                image.set(P.x,P.y,TGAColor((unsigned char)(color.r*inP),(unsigned char)(color.g*inP),(unsigned char)(color.b*inP))) ;
+
+                image.set(P.x,P.y,color*inP) ;
 //                image.set(P.x,P.y,TGAColor((unsigned char)(color.r),(unsigned char)(color.g),(unsigned char)(color.b))) ;
 //                image.set(P.x,P.y,TGAColor((unsigned char)(255*intensity),(unsigned char)(255*intensity),(unsigned char)(255*intensity))) ;
             }

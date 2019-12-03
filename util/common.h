@@ -141,12 +141,15 @@ inline void normalVertexs(vector<Vec3f>& s_verts ,vector<Vec3i>& verts_,int heig
     Matrix44 lookat = manipulation::lookAt(eye,center,up) ;
     Matrix44 viewport = manipulation::viewport(width/8,height/8,width*3/4,height*3/4,255) ;
     Matrix44 project = manipulation::projection((eye-center).norm()) ;
+
+    Matrix44 fuck = viewport*project*lookat ;
+    std::cerr<<fuck<<endl ;
     for(int i = 0 ;i< verts_.size();i++)
     {
         //明天进行v2m和m2v的替换
         Matrix41 screen = manipulation::v2m(s_verts[i]) ;
         verts_[i] = manipulation::m2v(viewport*project*lookat*screen) ;
-        cout<<" i "<<verts_[i][0]<<" "<<verts_[i][1]<<" "<<verts_[i][2]<<" "<<endl ;
+//        cout<<" i "<<verts_[i][0]<<" "<<verts_[i][1]<<" "<<verts_[i][2]<<" "<<endl ;
     }
 
 
@@ -206,9 +209,10 @@ inline TGAColor& multiply(TGAColor& from ,const float val)
     TGAColor to ;
     for(int i = 0;i< 3;i++)
     {
-        to.raw[i] = (char)(((float)from.raw[i])*val) ;
+
+        to.bgra[i] = (char)(((float)from.bgra[i])*val) ;
     }
-    to.raw[3] = 255 ;
+    to.bgra[3] = 255 ;
     to.bytespp = 3;
     return to ;
 }
@@ -219,7 +223,7 @@ inline TGAColor& interpolateColor(vector<TGAColor> colors,Vec3f baryCoordinates 
     {
         for(int j = 0; j<3 ;j++)
         {
-            result.raw[i] +=  colors[j].raw[i]*baryCoordinates[j] ;
+            result.bgra[i] +=  colors[j].bgra[i]*baryCoordinates[j] ;
         }
     }
     return result ;

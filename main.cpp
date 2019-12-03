@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     vector<TGAColor> two ;
     a.setcamera(camera) ;
     a.normal(800,800,center,eye,up);
-    a.drawAll(image, one ,two,Vec3f(0,0,-1)) ;
+    a.drawAll(image, one ,two,light_dir) ;
 
 
     image.flip_vertically();

@@ -20,6 +20,10 @@ math.h
 ../util/data.h
 /Users/lidan/Desktop/软光栅/tinyrender/util/data.h
 
+/Users/lidan/Desktop/软光栅/tinyrender/geom/triangle.cpp
+triangle.h
+/Users/lidan/Desktop/软光栅/tinyrender/geom/triangle.h
+
 /Users/lidan/Desktop/软光栅/tinyrender/geom/triangle.h
 Point.h
 /Users/lidan/Desktop/软光栅/tinyrender/geom/Point.h
@@ -35,6 +39,18 @@ vector
 -
 tuple
 -
+
+/Users/lidan/Desktop/软光栅/tinyrender/main.cpp
+module/tgaimage.h
+/Users/lidan/Desktop/软光栅/tinyrender/module/tgaimage.h
+geom/Point.h
+/Users/lidan/Desktop/软光栅/tinyrender/geom/Point.h
+geom/Line.h
+/Users/lidan/Desktop/软光栅/tinyrender/geom/Line.h
+module/ModelAndView.h
+/Users/lidan/Desktop/软光栅/tinyrender/module/ModelAndView.h
+geom/triangle.h
+/Users/lidan/Desktop/软光栅/tinyrender/geom/triangle.h
 
 /Users/lidan/Desktop/软光栅/tinyrender/module/ModelAndView.cpp
 ModelAndView.h
